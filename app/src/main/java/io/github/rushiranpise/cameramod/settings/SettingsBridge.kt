@@ -29,6 +29,9 @@ object SettingsBridge {
     private var presets: List<Int>? = null
 
     @Volatile
+    private var overrides: Map<String, Boolean>? = null
+
+    @Volatile
     private var failedAt = 0L
 
     fun isEnabled(feature: ModFeature): Boolean {
@@ -46,6 +49,15 @@ object SettingsBridge {
     fun zoomPresets(): List<Int> {
         snapshot()
         return presets ?: ModSettings.DEFAULT_ZOOM_PRESETS
+    }
+
+    /**
+     * Raw support-flag overrides keyed by the camera's `e5.d` enum name. The value is the desired
+     * boolean; an absent key keeps the stock value. Cached with the rest of the snapshot.
+     */
+    fun flagOverrides(): Map<String, Boolean> {
+        snapshot()
+        return overrides ?: emptyMap()
     }
 
     @Synchronized
@@ -77,9 +89,13 @@ object SettingsBridge {
                 val loadedPresets = bundle.getString(ModSettings.ZOOM_PRESETS_KEY)
                     ?.let { ModSettings.sanitizeZoomPresets(it) }
                     ?: ModSettings.DEFAULT_ZOOM_PRESETS
+                val loadedOverrides = ModSettings.parseFlagOverrides(
+                    bundle.getString(ModSettings.FLAG_OVERRIDES_KEY),
+                )
                 snapshot = loaded
                 ceiling = loadedCeiling
                 presets = loadedPresets
+                overrides = loadedOverrides
                 CameraModHook.log(
                     "Toggles: " + loaded.entries.joinToString { "${it.key}=${it.value}" }
                 )
@@ -87,6 +103,10 @@ object SettingsBridge {
                 CameraModHook.log(
                     "Zoom presets: " +
                         loadedPresets.joinToString(",").ifEmpty { "(none)" }
+                )
+                CameraModHook.log(
+                    "Flag overrides: " + loadedOverrides.entries.joinToString { "${it.key}=${it.value}" }
+                        .ifEmpty { "(none)" }
                 )
                 loaded
             }

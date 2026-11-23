@@ -4,7 +4,7 @@ An LSPosed module for the Galaxy S25 Ultra camera. It raises the photo and video
 restores the stock shortcut row with configurable high-zoom presets, and exposes hidden Camera
 features through a compact Material 3 Expressive UI.
 
-[![Version](https://img.shields.io/badge/version-1.0.1-blue)](https://github.com/rushiranpise/S25CameraMod/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue)](https://github.com/rushiranpise/S25CameraMod/releases/latest)
 [![Android](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)](https://www.android.com/)
 [![LSPosed](https://img.shields.io/badge/LSPosed-API%2082-6C3FC5)](https://github.com/LSPosed/LSPosed)
 
@@ -25,6 +25,9 @@ features through a compact Material 3 Expressive UI.
   ceiling and presets.
 - **Video and Camera tabs** — the zoom card stays on top; video experiments and still-camera
   experiments are separated below it.
+- **Feature flag explorer** — browse all 243 support flags compiled into Camera 17.0.00.43, each
+  with its stock on/off value, a short summary, and an optional override. Search by flag name or
+  summary, filter by **All / On / Off / Overridden**, and reset one flag or every override.
 - **Safe fractional readouts** — the zoom readout is extended to five characters, so values such
   as `100.4` and `150.5` render without the stock `Invalid string length` crash.
 - **Independent toggles** — every experimental feature is opt-in. A disabled toggle leaves the
@@ -70,13 +73,11 @@ switches because a ceiling change cannot restore their zoom control:
 | --- | --- |
 | Dual/multi recording zoom | Removes the app's 19.9×/9.9× multi-scan cap and applies the configured ceiling |
 | Hyperlapse zoom | Raises the `HYPER_LAPSE` max-zoom query |
-| Dual Recording V2 | `SHOOTING_MODE_DUAL_RECORDING_V2` |
-| 4K portrait video | UHD/FHD/HD and 60/30 fps choices in Portrait Video |
 | Super steady 4K60 | `super-vdis` on the 4K60 back-camcorder maps |
-| 8K HDR10+ / HLG | HDR10+ and HLG on the 8K feature maps |
-| Tele 120 fps | Tele and second-tele Pro Video 120 fps |
-| APV recording | APV settings UI (APV / HDR / Log, HQ / LQ) |
-| Natural blur video | Natural-blur bokeh effect in Portrait Video |
+
+The remaining video behaviour — Dual Recording V2, 8K HDR10+/HLG, Tele 120 fps, APV recording,
+natural-blur video, and 4K portrait video — is controlled by its underlying support flag in
+**Feature flags**.
 
 ### Camera tab
 
@@ -86,14 +87,29 @@ switches because a ceiling change cannot restore their zoom control:
 | Portrait zoom | Raises the `PORTRAIT` max-zoom query |
 | Food zoom | Raises the `FOOD` max-zoom query |
 | High-res photo zoom | Raises the `HIGH_RESOLUTION` query for 50 MP/200 MP and other stills |
-| Portrait filters | Filter menu in Portrait and Portrait Video |
-| Detail enhancer button | Detail Enhancer quick setting in 12 MP Photo |
-| 50 MP motion photo | Motion Photo at the 50 MP resolutions |
-| 24 MP motion photo | Motion Photo at 24 MP; pair with Back 24 MP resolution |
-| Fusion high resolution | `SUPPORT_FUSION_HIGH_RESOLUTION` |
-| Photo max night shot | Internal Night/Portrait capture-limit flag |
-| AI high-res memory check | High-resolution memory-guard flag |
-| Back 24 MP resolution | 24 MP resolution entries, supplied by the module fallback |
+
+The former photo toggles — Portrait filters, Detail Enhancer button, 50 MP/24 MP motion photo,
+Fusion high resolution, Photo max night shot, AI high-res memory check, and Back 24 MP
+resolution — now live in **Feature flags** as raw support-flag overrides.
+
+### Feature flags
+
+Open the **Feature flags** row on the main screen to browse every support flag defined by
+`e5.d` in Camera 17.0.00.43:
+
+- **Stock value** — the camera process reports its real on/off state, captured without applying
+  any module override. The header shows the Camera version and how many flags are on.
+- **Override** — flip any flag on or off. A flag equal to its stock value stores no override; a
+  different value is applied in the `e5.g.o(e5.d)` after-hook and marked **Override**.
+- **Search and filters** — search matches both the flag name and its summary. Filter by
+  **All / On / Off / Overridden**, and narrow to the **Video** or **Camera** category.
+- **Reset** — use the reset icon in each row to return that flag to stock, or the circular-arrow
+  icon in the header to clear every override at once.
+
+> [!NOTE]
+> Summaries are inferred from the flag names, not official Samsung documentation. Some hardware
+> and system flags have no visible effect on this firmware, and forcing one off can destabilise
+> Camera. Overrides are opt-in; leaving a flag on **Default** keeps the stock result.
 
 > [!NOTE]
 > The camera app computes feature support once per process and caches the module snapshot. After
@@ -115,8 +131,8 @@ firmware-specific. Treat every other build as untested.
 
 ## Install
 
-1. Download `S25CameraMod-1.0.1-release.apk` (recommended, 3.1 MB) from
-   [Releases](https://github.com/rushiranpise/S25CameraMod/releases/latest). The 31.9 MB
+1. Download `S25CameraMod-1.1.0-release.apk` (recommended, 3.2 MB) from
+   [Releases](https://github.com/rushiranpise/S25CameraMod/releases/latest). The 32.5 MB
    `-debug.apk` is also available for troubleshooting.
 2. Install it on the phone.
 3. Enable **S25 Camera Mod** in LSPosed.
@@ -134,7 +150,10 @@ keeps full class names for logs. Neither is a Play Store release.
    to edit the ceiling and presets.
 3. Switch between **Video** and **Camera** to enable additional zoom places or experimental
    features. Each zoom place is independent of the standard switch.
-4. Force stop Camera after a change, then reopen Camera.
+4. Open **Feature flags** to browse and override the raw support flags. Use search or the
+   **All / On / Off / Overridden** filters, and reset individual flags or every override from the
+   header.
+5. Force stop Camera after a change, then reopen Camera.
 
 Presets above the configured ceiling remain saved but are ignored until the ceiling is raised.
 Presets apply to the shortcut-list zoom UI in Video and in the expanded Photo zoom controls while
@@ -146,11 +165,16 @@ Presets apply to the shortcut-list zoom UI in Video and in the expanded Photo zo
   configured ceiling for the back-camera zoom types whose switch is enabled.
 - `p8.n1.a(l9.x)` replaces the computed multi-recording maximum with 19.9×/9.9× when multi-scan
   mode is active. A second hook rewrites that value only when **Dual/multi recording zoom** is on.
-- `e5.g.o(e5.d)` is the camera's support-flag getter. The module flips selected flags from false to
-  true only when the matching toggle is enabled.
+- `e5.g.o(e5.d)` is the camera's support-flag getter. An after-hook applies the user's raw
+  override map, so an overridden flag can be forced on or off while untouched flags keep the stock
+  result. The stock snapshot is captured separately through `report_stock_flags`, before any
+  override is applied.
+- `e5.g.n(e5.l)` supplies the shooting-mode and camcorder maps. The module rewrites only the maps
+  requested by an active override: Dual Recording V2, 8K HDR10+/HLG, and Super steady 4K60.
 - `e5.g.m(e5.n)` supplies resolution strings. A small fallback provides the four missing 24 MP
   entries so `SUPPORT_BACK_MEDIUM_RESOLUTION` does not read a null resolution.
-- Shooting-mode and camcorder feature maps are rewritten for the video toggles.
+- The **Feature flags** explorer reads the bundled 243-name `e5.d` catalog and the camera-reported
+  stock snapshot, then stores only the values that differ from stock.
 - `ZoomReadoutFix` extends the stock three zoom views from four to five character buckets.
 - Zoom presets rewrite the shortcut adapter's high-zoom tail and override the shared value lookup
   so chip text, click value, selection, and ticks stay consistent.
@@ -185,7 +209,8 @@ To build the larger debug APK instead, run `assembleDebug lintDebug` and use
 
 The release build is minified, resource-shrunk, and signed with the debug key for update
 compatibility. `proguard-rules.pro` keeps the Xposed entry point and DexKit classes. Both variants
-are arm64-v8a and include the DexKit native library used for class lookup.
+are arm64-v8a and include the DexKit native library used for class lookup. The 1.1.0 release APK is
+3.2 MB; the debug APK is 32.5 MB.
 
 ## Known limitations
 
@@ -195,8 +220,12 @@ are arm64-v8a and include the DexKit native library used for class lookup.
 - Above 100×, the stock tick map is sparse or incomplete even though the readout works.
 - 50 MP Motion Photo, 24 MP capture, Fusion high resolution, and the policy flags are experimental.
   They may expose no UI or fail on capture on this firmware.
-- `SUPPORT_AI_HIGH_RESOLUTION_MEMORY_CHECK` is not queried by Camera 17.0.00.43, so that toggle is
-  inert on this build.
+- Feature-flag summaries are inferred from the flag names. Samsung publishes no descriptions for
+  `e5.d`; the explorer disclaimer reflects that.
+- Forcing a hardware or system flag off can break Camera features or destabilise the app. Leave
+  flags on **Default** unless the effect is understood.
+- `SUPPORT_AI_HIGH_RESOLUTION_MEMORY_CHECK` is not queried by Camera 17.0.00.43, so overriding it
+  has no effect on this build.
 - The per-mode zoom switches are experimental. Some `NOT_SUPPORTED` places hide the zoom UI
   entirely, and the HAL may still clamp capture crop even when the slider moves.
 - The front camera has no digital-zoom slider; it is intentionally not covered.

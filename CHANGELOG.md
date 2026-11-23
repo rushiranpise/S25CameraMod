@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.1.0
+
+Full support-flag explorer.
+
+- Added **Feature flags**, a searchable list of all 243 `e5.d` support flags compiled into
+  Camera 17.0.00.43, grouped into **Video** and **Camera**.
+- Each flag shows its stock on/off value reported by the camera process, a short summary, and a
+  Default/Override badge.
+- Added per-flag overrides, a per-row reset, a header reset-all action, and **All / On / Off /
+  Overridden** filters.
+- Overrides are applied in the `e5.g.o(e5.d)` after-hook, so an overridden flag can be forced
+  either on or off. Flags without an override keep the exact stock result.
+- Stock values are captured by the camera process through `report_stock_flags`, which is limited
+  to the Camera UID, so overrides never contaminate the reported stock snapshot.
+- The former raw support-flag toggles were folded into the explorer and migrate once into raw
+  overrides. Dual Recording V2 and 8K HDR10+/HLG map rewrites now key off those overrides.
+- Summaries are generated from the flag names; the explorer states that they are inferred hints,
+  not official Samsung documentation.
+- VersionCode 12, versionName 1.1.0.
+
 ## 1.0.1
 
 Per-place zoom opt-ins.

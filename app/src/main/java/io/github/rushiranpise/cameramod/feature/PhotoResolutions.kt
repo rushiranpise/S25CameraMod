@@ -3,7 +3,6 @@ package io.github.rushiranpise.cameramod.feature
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import io.github.rushiranpise.cameramod.CameraModHook
-import io.github.rushiranpise.cameramod.settings.ModFeature
 import io.github.rushiranpise.cameramod.settings.SettingsBridge
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -15,13 +14,14 @@ import java.util.concurrent.ConcurrentHashMap
  * The stock flag `SUPPORT_BACK_MEDIUM_RESOLUTION` is computed from those XML values, so forcing
  * the flag alone makes the app call `e5.g.m(BACK_CAMERA_RESOLUTION_MEDIUM_RESOLUTION*)`, which
  * would otherwise fail a null check. Returning the standard 24 MP sizes here keeps the
- * experimental 24 MP option from taking the camera process down when the toggle is enabled.
+ * experimental 24 MP option from taking the camera process down when the flag is overridden on.
  */
 object PhotoResolutions {
 
     private const val GETTER_CLASS = "e5.g"
     private const val GETTER_METHOD = "m"
     private const val RESOLUTION_TYPE = "e5.n"
+    private const val MEDIUM_RESOLUTION_FLAG = "SUPPORT_BACK_MEDIUM_RESOLUTION"
 
     private val mediumResolution = mapOf(
         "BACK_CAMERA_RESOLUTION_MEDIUM_RESOLUTION" to "5712x4284",
@@ -41,7 +41,7 @@ object PhotoResolutions {
 
         XposedBridge.hookMethod(method, object : XC_MethodHook() {
             override fun beforeHookedMethod(param: MethodHookParam) {
-                if (!SettingsBridge.isEnabled(ModFeature.BACK_MEDIUM_RESOLUTION)) return
+                if (SettingsBridge.flagOverrides()[MEDIUM_RESOLUTION_FLAG] != true) return
                 val name = (param.args.getOrNull(0) as? Enum<*>)?.name ?: return
                 val value = mediumResolution[name] ?: return
 

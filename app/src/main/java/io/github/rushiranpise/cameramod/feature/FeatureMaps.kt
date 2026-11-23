@@ -15,6 +15,9 @@ import java.util.concurrent.ConcurrentHashMap
  * e5.g.n(e5.l) returns both shooting-mode maps and per-resolution feature maps. The camera app
  * reads these maps for mode visibility, stabilization availability and HDR capabilities. Only
  * the requested key is copied and changed; every other map is returned untouched.
+ *
+ * Dual Recording and 8K HDR are keyed to the same raw support-flag overrides shown in the flag
+ * explorer, so the old curated switches and the new overrides cannot disagree.
  */
 object FeatureMaps {
 
@@ -23,7 +26,9 @@ object FeatureMaps {
     private const val MAP_PARAM_TYPE = "e5.l"
 
     private const val DUAL_RECORDING_V2_MAP = "SHOOTING_MODE_DUAL_RECORDING_V2"
+    private const val DUAL_RECORDING_FLAG = "SUPPORT_DUAL_RECORDING_IN_VIDEO_MODE"
     private const val HIGH_RES_VIDEO_PREFIX = "BACK_CAMCORDER_RESOLUTION_FEATURE_MAP_7680X"
+    private const val HDR_VIDEO_FLAG = "SUPPORT_HDR_VIDEOS_MENU"
 
     private val superSteadyMaps = setOf(
         "BACK_CAMCORDER_RESOLUTION_FEATURE_MAP_3840X2160_60FPS",
@@ -43,29 +48,16 @@ object FeatureMaps {
         XposedBridge.hookMethod(method, object : XC_MethodHook() {
             override fun afterHookedMethod(param: MethodHookParam) {
                 val key = (param.args.getOrNull(0) as? Enum<*>)?.name ?: return
-                val feature = featureFor(key) ?: return
-                if (!SettingsBridge.isEnabled(feature)) return
+                val change = changeFor(key) ?: return
 
                 val original = param.result as? Map<*, *> ?: return
                 val copy = HashMap<Any?, Any?>(original.size)
                 original.forEach { (mapKey, value) -> copy[mapKey] = value }
-
-                when (feature) {
-                    ModFeature.DUAL_RECORDING_V2 -> copy["enable"] = "true"
-
-                    ModFeature.SUPER_STEADY_4K60 -> copy["super-vdis"] = "true"
-
-                    ModFeature.HDR_8K -> {
-                        copy["hdr10"] = "true"
-                        copy["hlg"] = "true"
-                    }
-
-                    else -> return
-                }
+                change.applyTo(copy)
 
                 param.result = copy
                 if (loggedMaps.add(key)) {
-                    CameraModHook.log("Rewrote $key for ${feature.key}")
+                    CameraModHook.log("Rewrote $key (${change.label})")
                 }
             }
         })
@@ -73,11 +65,35 @@ object FeatureMaps {
         CameraModHook.log("Feature-map overrides installed")
     }
 
-    private fun featureFor(key: String): ModFeature? = when {
-        key == DUAL_RECORDING_V2_MAP -> ModFeature.DUAL_RECORDING_V2
-        key in superSteadyMaps -> ModFeature.SUPER_STEADY_4K60
-        key.startsWith(HIGH_RES_VIDEO_PREFIX) -> ModFeature.HDR_8K
-        else -> null
+    private sealed class MapChange(val label: String) {
+        abstract fun applyTo(map: HashMap<Any?, Any?>)
+
+        class Put(val entries: Map<String, String>, label: String) : MapChange(label) {
+            override fun applyTo(map: HashMap<Any?, Any?>) {
+                entries.forEach { (key, value) -> map[key] = value }
+            }
+        }
+    }
+
+    private fun changeFor(key: String): MapChange? {
+        val overrides = SettingsBridge.flagOverrides()
+        return when {
+            key == DUAL_RECORDING_V2_MAP &&
+                overrides[DUAL_RECORDING_FLAG] == true ->
+                MapChange.Put(mapOf("enable" to "true"), DUAL_RECORDING_FLAG)
+
+            key.startsWith(HIGH_RES_VIDEO_PREFIX) &&
+                overrides[HDR_VIDEO_FLAG] == true ->
+                MapChange.Put(mapOf("hdr10" to "true", "hlg" to "true"), HDR_VIDEO_FLAG)
+
+            key in superSteadyMaps && SettingsBridge.isEnabled(ModFeature.SUPER_STEADY_4K60) ->
+                MapChange.Put(
+                    mapOf("super-vdis" to "true"),
+                    ModFeature.SUPER_STEADY_4K60.key,
+                )
+
+            else -> null
+        }
     }
 
     private fun findMapGetter(classLoader: ClassLoader): Method? = try {
