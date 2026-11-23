@@ -98,7 +98,7 @@ private fun StatusScreen() {
                     modifier = Modifier.weight(1f),
                 )
                 Text(
-                    text = "v1.0.0",
+                    text = "v1.0.1",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

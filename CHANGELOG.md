@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.1
+
+Per-place zoom opt-ins.
+
+- Added independent zoom switches for Night (`NIGHT`), Portrait (`PORTRAIT`), Food (`FOOD`),
+  Hyperlapse (`HYPER_LAPSE`), dual/multi recording (`MULTI_RECORDING`), and high-resolution stills
+  (`HIGH_RESOLUTION` outside 7680× video).
+- Added a `p8.n1.a` override for the app's hardcoded 19.9×/9.9× multi-scan ceiling.
+- Every new switch defaults off; the existing **Photo & video zoom** master keeps its 1.0.0 scope
+  and remains on by default.
+- Documented the zoom-type map and the places whose zoom control is hard-blocked (front camera,
+  Single Take, panorama, Mirror, More, stereo video, Super Steady/Auto Framing, and flash photo).
+- VersionCode 11, versionName 1.0.1.
+
 ## 1.0.0
 
 First public release.

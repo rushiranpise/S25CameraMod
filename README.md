@@ -4,7 +4,7 @@ An LSPosed module for the Galaxy S25 Ultra camera. It raises the photo and video
 restores the stock shortcut row with configurable high-zoom presets, and exposes hidden Camera
 features through a compact Material 3 Expressive UI.
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/rushiranpise/S25CameraMod/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.0.1-blue)](https://github.com/rushiranpise/S25CameraMod/releases/latest)
 [![Android](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)](https://www.android.com/)
 [![LSPosed](https://img.shields.io/badge/LSPosed-API%2082-6C3FC5)](https://github.com/LSPosed/LSPosed)
 
@@ -16,7 +16,10 @@ features through a compact Material 3 Expressive UI.
 
 - **Configurable photo and video zoom** — 100.0× to 999.9×, default **100×**, applied to the back
   camera's Photo (`NORMAL`), Video, Pro video (`LENS_PHYSICAL`), Portrait Video, and 8K video zoom
-  queries. High-resolution stills keep their stock per-mode limits.
+  queries.
+- **Per-mode zoom opt-ins** — separate switches for Night, Portrait, Food, Hyperlapse,
+  Dual/Multi recording, and high-resolution stills. Every new switch defaults off, so its mode
+  keeps the stock ceiling until you enable it.
 - **Zoom presets** — whole-number shortcuts from 1× to 999×, up to seven entries, sorted and
   deduplicated. Defaults are **25×** and **100×**. The gear beside the zoom switch edits the
   ceiling and presets.
@@ -27,10 +30,46 @@ features through a compact Material 3 Expressive UI.
 - **Independent toggles** — every experimental feature is opt-in. A disabled toggle leaves the
   stock value untouched.
 
+### Zoom places
+
+The camera app asks the HAL for a different maximum-zoom entry per shooting mode. The module maps
+those entries to independent switches:
+
+| Place | Camera zoom type | Switch | Default |
+| --- | --- | --- | --- |
+| Photo, Video, Pro/Pro video, Portrait Video, 8K video | `NORMAL`, `VIDEO`, `LENS_PHYSICAL`, `PORTRAIT_VIDEO`, `HIGH_RESOLUTION` (7680×) | Photo & video zoom | On |
+| Night | `NIGHT` | Night mode zoom | Off |
+| Portrait | `PORTRAIT` | Portrait zoom | Off |
+| Food | `FOOD` | Food zoom | Off |
+| Hyperlapse | `HYPER_LAPSE` | Hyperlapse zoom | Off |
+| Dual/Multi recording | `MULTI_RECORDING` plus the app's 19.9×/9.9× hardcode | Dual/multi recording zoom | Off |
+| 50 MP / 200 MP and other high-resolution stills | `HIGH_RESOLUTION` (non-7680×) | High-res photo zoom | Off |
+
+A few places hard-block digital zoom before the maximum is ever queried. They are not exposed as
+switches because a ceiling change cannot restore their zoom control:
+
+| Place | Why a ceiling change is not enough |
+| --- | --- |
+| Front camera | Photo and video use the full/crop angle (`FOV`) control, not a digital slider |
+| Single Take, panorama | Lens-only zoom card; the mode never adds a level slider |
+| Mirror | Uses the mirror zoom animation and lens controls instead of the level slider |
+| More | Reports `NOT_SUPPORTED`, and the zoom-availability check rejects it |
+| Stereo video | `VideoZoomController` rejects zoom and resets it to 1× on mode entry |
+| Super Steady, Auto Framing | Lens-only card; the controller clamps zoom to the supported 1×/2× levels |
+| Photo with flash in the wide lens | The photo controller hides the zoom controls while flash is active |
+
+> [!NOTE]
+> The per-mode switches change the maximum the camera asks the HAL for. They do not add a zoom
+> control to a mode that has none. Food, Portrait, and Hyperlapse fall back to `NORMAL` or
+> `LENS_PHYSICAL` when Samsung's seamless-zoom flag is off; those fallbacks stay on the master
+> **Photo & video zoom** switch.
+
 ### Video tab
 
 | Toggle | What it enables |
 | --- | --- |
+| Dual/multi recording zoom | Removes the app's 19.9×/9.9× multi-scan cap and applies the configured ceiling |
+| Hyperlapse zoom | Raises the `HYPER_LAPSE` max-zoom query |
 | Dual Recording V2 | `SHOOTING_MODE_DUAL_RECORDING_V2` |
 | 4K portrait video | UHD/FHD/HD and 60/30 fps choices in Portrait Video |
 | Super steady 4K60 | `super-vdis` on the 4K60 back-camcorder maps |
@@ -43,6 +82,10 @@ features through a compact Material 3 Expressive UI.
 
 | Toggle | What it enables |
 | --- | --- |
+| Night mode zoom | Raises the `NIGHT` max-zoom query |
+| Portrait zoom | Raises the `PORTRAIT` max-zoom query |
+| Food zoom | Raises the `FOOD` max-zoom query |
+| High-res photo zoom | Raises the `HIGH_RESOLUTION` query for 50 MP/200 MP and other stills |
 | Portrait filters | Filter menu in Portrait and Portrait Video |
 | Detail enhancer button | Detail Enhancer quick setting in 12 MP Photo |
 | 50 MP motion photo | Motion Photo at the 50 MP resolutions |
@@ -72,7 +115,7 @@ firmware-specific. Treat every other build as untested.
 
 ## Install
 
-1. Download `S25CameraMod-1.0.0-release.apk` (recommended, 3.1 MB) from
+1. Download `S25CameraMod-1.0.1-release.apk` (recommended, 3.1 MB) from
    [Releases](https://github.com/rushiranpise/S25CameraMod/releases/latest). The 31.9 MB
    `-debug.apk` is also available for troubleshooting.
 2. Install it on the phone.
@@ -87,18 +130,22 @@ keeps full class names for logs. Neither is a Play Store release.
 ## Usage
 
 1. Open **S25 Camera Mod**.
-2. Use **Photo & video zoom** to enable or disable the zoom ceiling. Tap its gear to edit the
-   ceiling and presets.
-3. Switch between **Video** and **Camera** for the experimental toggles.
+2. Use **Photo & video zoom** to enable or disable the standard photo/video ceiling. Tap its gear
+   to edit the ceiling and presets.
+3. Switch between **Video** and **Camera** to enable additional zoom places or experimental
+   features. Each zoom place is independent of the standard switch.
 4. Force stop Camera after a change, then reopen Camera.
 
 Presets above the configured ceiling remain saved but are ignored until the ceiling is raised.
-Presets apply to the shortcut-list zoom UI in Video and in the expanded Photo zoom controls.
+Presets apply to the shortcut-list zoom UI in Video and in the expanded Photo zoom controls while
+**Photo & video zoom** is enabled.
 
 ## How it works
 
 - `u8.e.f(l9.g3, l9.a2)` supplies the per-mode maximum digital zoom. The module returns the
-  configured ceiling for the supported back-camera zoom types.
+  configured ceiling for the back-camera zoom types whose switch is enabled.
+- `p8.n1.a(l9.x)` replaces the computed multi-recording maximum with 19.9×/9.9× when multi-scan
+  mode is active. A second hook rewrites that value only when **Dual/multi recording zoom** is on.
 - `e5.g.o(e5.d)` is the camera's support-flag getter. The module flips selected flags from false to
   true only when the matching toggle is enabled.
 - `e5.g.m(e5.n)` supplies resolution strings. A small fallback provides the four missing 24 MP
@@ -150,10 +197,13 @@ are arm64-v8a and include the DexKit native library used for class lookup.
   They may expose no UI or fail on capture on this firmware.
 - `SUPPORT_AI_HIGH_RESOLUTION_MEMORY_CHECK` is not queried by Camera 17.0.00.43, so that toggle is
   inert on this build.
-- Dual recording keeps the camera app's hardcoded 19.9×/9.9× multi-recording limit.
+- The per-mode zoom switches are experimental. Some `NOT_SUPPORTED` places hide the zoom UI
+  entirely, and the HAL may still clamp capture crop even when the slider moves.
+- The front camera has no digital-zoom slider; it is intentionally not covered.
 - Preset values that reuse placeholder enum IDs can show the placeholder's stock value in some
   accessibility labels and tick positions.
-- Disabling the zoom toggle restores the stock shortcut row and stock per-mode ceilings.
+- Disabling **Photo & video zoom** restores the stock shortcut row and the standard per-mode
+  ceilings; disabling a per-mode zoom switch restores only that mode's ceiling.
 
 ## Changelog
 

@@ -14,8 +14,8 @@ android {
         applicationId = "io.github.rushiranpise.cameramod"
         minSdk = 33
         targetSdk = 36
-        versionCode = 10
-        versionName = "1.0.0"
+        versionCode = 11
+        versionName = "1.0.1"
 
         // DexKit is a native library. The S25 Ultra is arm64-only.
         ndk {
