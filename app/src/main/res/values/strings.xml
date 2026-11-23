@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">S25 Camera Mod</string>
+    <string name="xposed_description">Enables a configurable photo and video zoom ceiling plus optional hidden camera features.</string>
+</resources>

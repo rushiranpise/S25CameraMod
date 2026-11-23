@@ -1,0 +1,172 @@
+# S25 Camera Mod
+
+An LSPosed module for the Galaxy S25 Ultra camera. It raises the photo and video zoom ceiling,
+restores the stock shortcut row with configurable high-zoom presets, and exposes hidden Camera
+features through a compact Material 3 Expressive UI.
+
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/rushiranpise/S25CameraMod/releases/latest)
+[![Android](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)](https://www.android.com/)
+[![LSPosed](https://img.shields.io/badge/LSPosed-API%2082-6C3FC5)](https://github.com/LSPosed/LSPosed)
+
+> [!IMPORTANT]
+> This is an experimental camera mod. The APK is debug-signed, requires root plus LSPosed, and is
+> only tested against the firmware listed under [Compatibility](#compatibility).
+
+## Features
+
+- **Configurable photo and video zoom** — 100.0× to 999.9×, default **100×**, applied to the back
+  camera's Photo (`NORMAL`), Video, Pro video (`LENS_PHYSICAL`), Portrait Video, and 8K video zoom
+  queries. High-resolution stills keep their stock per-mode limits.
+- **Zoom presets** — whole-number shortcuts from 1× to 999×, up to seven entries, sorted and
+  deduplicated. Defaults are **25×** and **100×**. The gear beside the zoom switch edits the
+  ceiling and presets.
+- **Video and Camera tabs** — the zoom card stays on top; video experiments and still-camera
+  experiments are separated below it.
+- **Safe fractional readouts** — the zoom readout is extended to five characters, so values such
+  as `100.4` and `150.5` render without the stock `Invalid string length` crash.
+- **Independent toggles** — every experimental feature is opt-in. A disabled toggle leaves the
+  stock value untouched.
+
+### Video tab
+
+| Toggle | What it enables |
+| --- | --- |
+| Dual Recording V2 | `SHOOTING_MODE_DUAL_RECORDING_V2` |
+| 4K portrait video | UHD/FHD/HD and 60/30 fps choices in Portrait Video |
+| Super steady 4K60 | `super-vdis` on the 4K60 back-camcorder maps |
+| 8K HDR10+ / HLG | HDR10+ and HLG on the 8K feature maps |
+| Tele 120 fps | Tele and second-tele Pro Video 120 fps |
+| APV recording | APV settings UI (APV / HDR / Log, HQ / LQ) |
+| Natural blur video | Natural-blur bokeh effect in Portrait Video |
+
+### Camera tab
+
+| Toggle | What it enables |
+| --- | --- |
+| Portrait filters | Filter menu in Portrait and Portrait Video |
+| Detail enhancer button | Detail Enhancer quick setting in 12 MP Photo |
+| 50 MP motion photo | Motion Photo at the 50 MP resolutions |
+| 24 MP motion photo | Motion Photo at 24 MP; pair with Back 24 MP resolution |
+| Fusion high resolution | `SUPPORT_FUSION_HIGH_RESOLUTION` |
+| Photo max night shot | Internal Night/Portrait capture-limit flag |
+| AI high-res memory check | High-resolution memory-guard flag |
+| Back 24 MP resolution | 24 MP resolution entries, supplied by the module fallback |
+
+> [!NOTE]
+> The camera app computes feature support once per process and caches the module snapshot. After
+> changing any toggle, ceiling, or preset, **force stop Camera** before reopening it.
+
+## Compatibility
+
+| Item | Value |
+| --- | --- |
+| Device | Samsung Galaxy S25 Ultra (SM-S938U1) |
+| OS | One UI 9 / Android 17 (SDK 37) |
+| Camera | `com.sec.android.app.camera` 17.0.00.43 (versionCode 1700043000) |
+| Framework | LSPosed, legacy Xposed API 82 |
+| Root | KernelSU Next or another LSPosed-compatible root |
+| Module minSdk | 33 (Android 13) |
+
+Other Camera versions may compile and load, but the obfuscated class and method names are
+firmware-specific. Treat every other build as untested.
+
+## Install
+
+1. Download `S25CameraMod-1.0.0-release.apk` (recommended, 3.1 MB) from
+   [Releases](https://github.com/rushiranpise/S25CameraMod/releases/latest). The 31.9 MB
+   `-debug.apk` is also available for troubleshooting.
+2. Install it on the phone.
+3. Enable **S25 Camera Mod** in LSPosed.
+4. Confirm the module scope contains **Camera** (`com.sec.android.app.camera`).
+5. Force stop Camera, then reopen it.
+
+Both APKs are signed with the Android debug certificate and install as updates over earlier module
+builds signed with the same key. The release APK is R8-minified and resource-shrunk; the debug APK
+keeps full class names for logs. Neither is a Play Store release.
+
+## Usage
+
+1. Open **S25 Camera Mod**.
+2. Use **Photo & video zoom** to enable or disable the zoom ceiling. Tap its gear to edit the
+   ceiling and presets.
+3. Switch between **Video** and **Camera** for the experimental toggles.
+4. Force stop Camera after a change, then reopen Camera.
+
+Presets above the configured ceiling remain saved but are ignored until the ceiling is raised.
+Presets apply to the shortcut-list zoom UI in Video and in the expanded Photo zoom controls.
+
+## How it works
+
+- `u8.e.f(l9.g3, l9.a2)` supplies the per-mode maximum digital zoom. The module returns the
+  configured ceiling for the supported back-camera zoom types.
+- `e5.g.o(e5.d)` is the camera's support-flag getter. The module flips selected flags from false to
+  true only when the matching toggle is enabled.
+- `e5.g.m(e5.n)` supplies resolution strings. A small fallback provides the four missing 24 MP
+  entries so `SUPPORT_BACK_MEDIUM_RESOLUTION` does not read a null resolution.
+- Shooting-mode and camcorder feature maps are rewritten for the video toggles.
+- `ZoomReadoutFix` extends the stock three zoom views from four to five character buckets.
+- Zoom presets rewrite the shortcut adapter's high-zoom tail and override the shared value lookup
+  so chip text, click value, selection, and ticks stay consistent.
+
+The module app stores its settings in private `SharedPreferences` and exposes them read-only to
+Camera through an exported content provider. Camera reads one snapshot per process.
+
+## Build
+
+Requirements:
+
+- JDK 17
+- Android SDK platform 36 and build-tools 36+
+- Internet for the first Gradle run, or a populated Gradle cache
+
+```powershell
+git clone https://github.com/rushiranpise/S25CameraMod.git
+cd S25CameraMod
+.\gradlew.bat assembleRelease lintRelease
+```
+
+On Linux or macOS use `./gradlew assembleRelease lintRelease` instead.
+
+Output:
+
+```text
+app\build\outputs\apk\release\app-release.apk
+```
+
+To build the larger debug APK instead, run `assembleDebug lintDebug` and use
+`app\build\outputs\apk\debug\app-debug.apk`.
+
+The release build is minified, resource-shrunk, and signed with the debug key for update
+compatibility. `proguard-rules.pro` keeps the Xposed entry point and DexKit classes. Both variants
+are arm64-v8a and include the DexKit native library used for class lookup.
+
+## Known limitations
+
+- Zoom above the stock optical range is digital crop/upscale; detail and stabilization degrade.
+- The camera HAL may reject or clamp crop requests above its own per-mode maximum. An APK hook
+  cannot fix a hard HAL limit.
+- Above 100×, the stock tick map is sparse or incomplete even though the readout works.
+- 50 MP Motion Photo, 24 MP capture, Fusion high resolution, and the policy flags are experimental.
+  They may expose no UI or fail on capture on this firmware.
+- `SUPPORT_AI_HIGH_RESOLUTION_MEMORY_CHECK` is not queried by Camera 17.0.00.43, so that toggle is
+  inert on this build.
+- Dual recording keeps the camera app's hardcoded 19.9×/9.9× multi-recording limit.
+- Preset values that reuse placeholder enum IDs can show the placeholder's stock value in some
+  accessibility labels and tick positions.
+- Disabling the zoom toggle restores the stock shortcut row and stock per-mode ceilings.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+## Disclaimer
+
+This project is not affiliated with, endorsed by, or supported by Samsung or LSPosed. Use it at
+your own risk. Camera modifications can affect image quality, thermal behavior, or stability.
+Restore stock behavior by disabling the module and rebooting if needed.
+
+## Credits
+
+- [LSPosed](https://github.com/LSPosed/LSPosed) for the Xposed framework.
+- [DexKit](https://github.com/LuckyPray/DexKit) for runtime dex lookup.
+- Kotlin, Jetpack Compose, and Material 3.

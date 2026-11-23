@@ -1,0 +1,40 @@
+# Gradle
+.gradle/
+.kotlin/
+build/
+app/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Local configuration
+local.properties
+keystore.properties
+
+# Signing material
+*.jks
+*.keystore
+*.p12
+
+# Build artifacts
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+*.hprof
+
+# Local verification dumps
+build-log*.txt
+manifest-dump.txt
+
+# OS metadata
+.DS_Store
+Thumbs.db
