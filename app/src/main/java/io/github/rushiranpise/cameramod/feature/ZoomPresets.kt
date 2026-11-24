@@ -161,6 +161,15 @@ object ZoomPresets {
         return true
     }
 
+    /**
+     * Effective milli-zoom for a shortcut enum, including preset overrides. Used by the slider
+     * fix so its tick segments and anchors agree with the chips.
+     */
+    fun shortcutValue(entry: Any): Int? {
+        val current = plan ?: buildPlan() ?: return null
+        return current.valueOf(enumName(entry))
+    }
+
     /** Mutates the shared list before the adapter stores and renders it. */
     private fun rewrite(list: MutableList<Any>) {
         if (list.isEmpty()) return

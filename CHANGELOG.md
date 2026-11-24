@@ -17,6 +17,10 @@ Fix flag-induced Camera crashes.
   normally.
 - The **On** and **Off** filters now use each flag's live value (override if present, otherwise
   stock) instead of the stock value alone.
+- The zoom tick slider now follows the configured ceiling. Missing preset ranges such as
+  `25x` to `100x` are added to the stock tick map, and the track is extended to the effective
+  mode maximum when the last preset is below it. The thumb and the zoom animation no longer stop
+  at the old 25x tick while the readout keeps increasing.
 - The header now reads the installed version instead of a hardcoded string.
 - Documented that 24 MP capture is not supported on this firmware. The medium-resolution and
   24 MP Motion Photo flags crash the vendor HAL; leave them on Default.

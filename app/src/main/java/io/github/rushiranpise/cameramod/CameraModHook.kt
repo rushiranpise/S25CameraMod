@@ -11,6 +11,7 @@ import io.github.rushiranpise.cameramod.feature.SupportFlags
 import io.github.rushiranpise.cameramod.feature.VideoZoomUnlock
 import io.github.rushiranpise.cameramod.feature.ZoomPresets
 import io.github.rushiranpise.cameramod.feature.ZoomReadoutFix
+import io.github.rushiranpise.cameramod.feature.ZoomSliderFix
 
 /**
  * Legacy Xposed API entry point, declared in assets/xposed_init.
@@ -34,6 +35,7 @@ class CameraModHook : IXposedHookLoadPackage {
         install("zoom readout") { ZoomReadoutFix.install(lpparam.classLoader) }
         install("zoom") { VideoZoomUnlock.install(lpparam.classLoader) }
         install("zoom presets") { ZoomPresets.install(lpparam.classLoader) }
+        install("zoom slider") { ZoomSliderFix.install(lpparam.classLoader) }
     }
 
     private fun install(name: String, block: () -> Unit) {

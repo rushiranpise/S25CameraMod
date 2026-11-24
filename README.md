@@ -157,7 +157,8 @@ keeps full class names for logs. Neither is a Play Store release.
 
 Presets above the configured ceiling remain saved but are ignored until the ceiling is raised.
 Presets apply to the shortcut-list zoom UI in Video and in the expanded Photo zoom controls while
-**Photo & video zoom** is enabled.
+**Photo & video zoom** is enabled. The tick slider follows the raised ceiling too: the thumb
+animates across the full usable range instead of stopping at the last stock tick.
 
 ## How it works
 
@@ -179,6 +180,9 @@ Presets apply to the shortcut-list zoom UI in Video and in the expanded Photo zo
 - `ZoomReadoutFix` extends the stock three zoom views from four to five character buckets.
 - Zoom presets rewrite the shortcut adapter's high-zoom tail and override the shared value lookup
   so chip text, click value, selection, and ticks stay consistent.
+- `ZoomSliderFix` fills the tick ranges the stock map does not know for custom preset pairs,
+  appends minor ticks when the last preset is below the mode maximum, and records the far-right
+  scroll position as the terminal zoom. The slider and its animation can then reach the ceiling.
 
 The module app stores its settings in private `SharedPreferences` and exposes them read-only to
 Camera through an exported content provider. Camera reads one snapshot per process.
