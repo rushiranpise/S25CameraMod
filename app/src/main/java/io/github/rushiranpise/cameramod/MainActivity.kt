@@ -282,8 +282,8 @@ private fun MainSettingsScreen(onOpenFlags: () -> Unit) {
 
 private enum class FlagFilter(val label: String) {
     ALL("All"),
-    STOCK_ON("On"),
-    STOCK_OFF("Off"),
+    ON("On"),
+    OFF("Off"),
     OVERRIDDEN("Overridden"),
 }
 
@@ -316,14 +316,15 @@ private fun FlagExplorerScreen(onBack: () -> Unit) {
         val needle = query.trim()
         allFlags.filter { flag ->
             val stockValue = snapshot?.flags?.get(flag.name)
+            val effectiveValue = overrides[flag.name] ?: stockValue ?: false
             (category == null || flag.category == category) &&
                 (needle.isEmpty() ||
                     flag.name.contains(needle, ignoreCase = true) ||
                     flag.summary.contains(needle, ignoreCase = true)) &&
                 when (filter) {
                     FlagFilter.ALL -> true
-                    FlagFilter.STOCK_ON -> stockValue == true
-                    FlagFilter.STOCK_OFF -> stockValue == false
+                    FlagFilter.ON -> effectiveValue
+                    FlagFilter.OFF -> !effectiveValue
                     FlagFilter.OVERRIDDEN -> overrides.containsKey(flag.name)
                 }
         }

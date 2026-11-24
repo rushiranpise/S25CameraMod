@@ -10,6 +10,8 @@ Fix front high-resolution flag crash.
   (`4000x3000`, `4000x2252`, `2992x2992`, `4000x1848`) before the picture-size menu is built.
 - The same fallback now covers **SUPPORT_BACK_PORTRAIT_MEDIUM_RESOLUTION** when it is enabled
   without **SUPPORT_BACK_MEDIUM_RESOLUTION**.
+- The **On** and **Off** filters now use each flag's live value (override if present, otherwise
+  stock) instead of the stock value alone.
 - The header now reads the installed version instead of a hardcoded string.
 - Documented that 24 MP capture is not supported on this firmware. The medium-resolution and
   24 MP Motion Photo flags crash the vendor HAL; leave them on Default.
