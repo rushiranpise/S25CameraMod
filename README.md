@@ -126,8 +126,23 @@ Open the **Feature flags** row on the main screen to browse every support flag d
 | Root | KernelSU Next or another LSPosed-compatible root |
 | Module minSdk | 33 (Android 13) |
 
-Other Camera versions may compile and load, but the obfuscated class and method names are
-firmware-specific. Treat every other build as untested.
+### Other Samsung devices
+
+The module **may** work on other Samsung devices running One UI 9, but that is not guaranteed and
+is not supported. Samsung does not guarantee one identical Camera APK across models, regions, and
+firmware builds: the Camera version, obfuscated class and method names, support-flag catalog, and
+hardware capabilities can all differ.
+
+A build that looks compatible can still:
+
+- miss one or more hooks, leaving that feature silently at stock;
+- expose flags that do nothing or are unsafe on that device;
+- crash Camera when an unsupported flag is forced on.
+
+The 243-flag explorer is built around the `e5.d` catalog in Camera 17.0.00.43; another Camera build
+may have a different flag set. Only the S25 Ultra build in the table above is tested. If you try
+another device, make sure you can disable the module from LSPosed, keep a backup, and be ready to
+reset overrides if Camera will not start.
 
 ## Install
 
