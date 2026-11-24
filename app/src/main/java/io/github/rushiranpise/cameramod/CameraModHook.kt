@@ -27,7 +27,7 @@ class CameraModHook : IXposedHookLoadPackage {
 
         install("support flags") { SupportFlags.install(lpparam.classLoader) }
         install("stock flag report") { StockFlagsReporter.install(lpparam.classLoader) }
-        install("24 MP resolution") { PhotoResolutions.install(lpparam.classLoader) }
+        install("resolution fallback") { PhotoResolutions.install(lpparam.classLoader) }
         install("feature maps") { FeatureMaps.install(lpparam.classLoader) }
         install("zoom readout") { ZoomReadoutFix.install(lpparam.classLoader) }
         install("zoom") { VideoZoomUnlock.install(lpparam.classLoader) }

@@ -104,6 +104,9 @@ private fun MainSettingsScreen(onOpenFlags: () -> Unit) {
     var zoomPresets by remember { mutableStateOf(ModSettings.zoomPresets(context)) }
     var showZoomDialog by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(FeatureTab.VIDEO) }
+    val versionName = remember {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty()
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -129,7 +132,7 @@ private fun MainSettingsScreen(onOpenFlags: () -> Unit) {
                     modifier = Modifier.weight(1f),
                 )
                 Text(
-                    text = "v1.1.0",
+                    text = "v$versionName",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

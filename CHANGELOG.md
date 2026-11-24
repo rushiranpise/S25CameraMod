@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.1.1
+
+Fix front high-resolution flag crash.
+
+- Forcing **SUPPORT_FRONT_HIGH_RESOLUTION** on made Camera 17.0.00.43 crash at startup with
+  `getResolution : argument is invalid -` because the front resolution entries are empty in
+  `camera-feature.xml`. The module now supplies the stock 12 MP front sizes
+  (`4000x3000`, `4000x2252`, `2992x2992`, `4000x1848`) before the picture-size menu is built.
+- The same fallback now covers **SUPPORT_BACK_PORTRAIT_MEDIUM_RESOLUTION** when it is enabled
+  without **SUPPORT_BACK_MEDIUM_RESOLUTION**.
+- The header now reads the installed version instead of a hardcoded string.
+- Documented that 24 MP capture is not supported on this firmware. The medium-resolution and
+  24 MP Motion Photo flags crash the vendor HAL; leave them on Default.
+- VersionCode 13, versionName 1.1.1.
+
 ## 1.1.0
 
 Full support-flag explorer.

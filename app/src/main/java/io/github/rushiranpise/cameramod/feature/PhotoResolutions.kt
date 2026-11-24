@@ -9,12 +9,14 @@ import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Supplies the 24 MP resolution entries that this camera build omits from camera-feature.xml.
+ * Fills in resolution entries that this camera build leaves empty in camera-feature.xml.
  *
- * The stock flag `SUPPORT_BACK_MEDIUM_RESOLUTION` is computed from those XML values, so forcing
- * the flag alone makes the app call `e5.g.m(BACK_CAMERA_RESOLUTION_MEDIUM_RESOLUTION*)`, which
- * would otherwise fail a null check. Returning the standard 24 MP sizes here keeps the
- * experimental 24 MP option from taking the camera process down when the flag is overridden on.
+ * The stock flags `SUPPORT_BACK_MEDIUM_RESOLUTION` and `SUPPORT_FRONT_HIGH_RESOLUTION` are
+ * computed from those XML values. Forcing either flag on makes the app parse
+ * `e5.g.m(BACK_CAMERA_RESOLUTION_MEDIUM_RESOLUTION*)` / `FRONT_CAMERA_RESOLUTION_*`, which are
+ * stored as empty strings and then crash `l9.a2.k` with "getResolution : argument is invalid".
+ * Returning valid sensor sizes here keeps the experimental options from taking the camera
+ * process down when the flags are overridden on.
  */
 object PhotoResolutions {
 
@@ -22,6 +24,8 @@ object PhotoResolutions {
     private const val GETTER_METHOD = "m"
     private const val RESOLUTION_TYPE = "e5.n"
     private const val MEDIUM_RESOLUTION_FLAG = "SUPPORT_BACK_MEDIUM_RESOLUTION"
+    private const val PORTRAIT_MEDIUM_RESOLUTION_FLAG = "SUPPORT_BACK_PORTRAIT_MEDIUM_RESOLUTION"
+    private const val FRONT_HIGH_RESOLUTION_FLAG = "SUPPORT_FRONT_HIGH_RESOLUTION"
 
     private val mediumResolution = mapOf(
         "BACK_CAMERA_RESOLUTION_MEDIUM_RESOLUTION" to "5712x4284",
@@ -30,29 +34,49 @@ object PhotoResolutions {
         "BACK_CAMERA_RESOLUTION_MEDIUM_RESOLUTION_FULL_RATIO" to "5712x2636",
     )
 
+    // The 12 MP front camera has no larger sensor mode; these mirror the *_LARGE values that
+    // Samsung ships in camera-feature.xml so the front picture-size menu can be constructed.
+    private val frontResolution = mapOf(
+        "FRONT_CAMERA_RESOLUTION_4BY3" to "4000x3000",
+        "FRONT_CAMERA_RESOLUTION_4BY3_LARGE" to "4000x3000",
+        "FRONT_CAMERA_RESOLUTION_HIGH_RESOLUTION" to "4000x3000",
+        "FRONT_CAMERA_RESOLUTION_16BY9" to "4000x2252",
+        "FRONT_CAMERA_RESOLUTION_16BY9_LARGE" to "4000x2252",
+        "FRONT_CAMERA_RESOLUTION_1BY1" to "2992x2992",
+        "FRONT_CAMERA_RESOLUTION_1BY1_LARGE" to "2992x2992",
+        "FRONT_CAMERA_RESOLUTION_FULL_RATIO" to "4000x1848",
+    )
+
     private val loggedKeys = ConcurrentHashMap.newKeySet<String>()
 
     fun install(classLoader: ClassLoader) {
         val method = findResolutionGetter(classLoader)
         if (method == null) {
-            CameraModHook.log("$GETTER_CLASS.$GETTER_METHOD not found; 24 MP fallback unavailable")
+            CameraModHook.log("$GETTER_CLASS.$GETTER_METHOD not found; resolution fallback unavailable")
             return
         }
 
         XposedBridge.hookMethod(method, object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                if (SettingsBridge.flagOverrides()[MEDIUM_RESOLUTION_FLAG] != true) return
+            override fun afterHookedMethod(param: MethodHookParam) {
                 val name = (param.args.getOrNull(0) as? Enum<*>)?.name ?: return
-                val value = mediumResolution[name] ?: return
+                if ((param.result as? String)?.isNotEmpty() == true) return
+
+                val overrides = SettingsBridge.flagOverrides()
+                val mediumActive = overrides[MEDIUM_RESOLUTION_FLAG] == true ||
+                    overrides[PORTRAIT_MEDIUM_RESOLUTION_FLAG] == true
+                val frontActive = overrides[FRONT_HIGH_RESOLUTION_FLAG] == true
+                val value = mediumResolution[name]?.takeIf { mediumActive }
+                    ?: frontResolution[name]?.takeIf { frontActive }
+                    ?: return
 
                 param.result = value
                 if (loggedKeys.add(name)) {
-                    CameraModHook.log("24 MP resolution fallback: $name -> $value")
+                    CameraModHook.log("Resolution fallback: $name -> $value")
                 }
             }
         })
 
-        CameraModHook.log("24 MP resolution fallback installed")
+        CameraModHook.log("Resolution fallback installed")
     }
 
     private fun findResolutionGetter(classLoader: ClassLoader): Method? = try {
@@ -66,7 +90,7 @@ object PhotoResolutions {
         }
     } catch (t: Throwable) {
         CameraModHook.log(
-            "24 MP resolution lookup failed (${t.javaClass.simpleName}: ${t.message})"
+            "Resolution fallback lookup failed (${t.javaClass.simpleName}: ${t.message})"
         )
         null
     }

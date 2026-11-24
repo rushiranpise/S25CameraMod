@@ -4,7 +4,7 @@ An LSPosed module for the Galaxy S25 Ultra camera. It raises the photo and video
 restores the stock shortcut row with configurable high-zoom presets, and exposes hidden Camera
 features through a compact Material 3 Expressive UI.
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue)](https://github.com/rushiranpise/S25CameraMod/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.1.1-blue)](https://github.com/rushiranpise/S25CameraMod/releases/latest)
 [![Android](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)](https://www.android.com/)
 [![LSPosed](https://img.shields.io/badge/LSPosed-API%2082-6C3FC5)](https://github.com/LSPosed/LSPosed)
 
@@ -131,8 +131,8 @@ firmware-specific. Treat every other build as untested.
 
 ## Install
 
-1. Download `S25CameraMod-1.1.0-release.apk` (recommended, 3.2 MB) from
-   [Releases](https://github.com/rushiranpise/S25CameraMod/releases/latest). The 32.5 MB
+1. Download `S25CameraMod-1.1.1-release.apk` (recommended, 3.2 MB) from
+   [Releases](https://github.com/rushiranpise/S25CameraMod/releases/latest). The 32.3 MB
    `-debug.apk` is also available for troubleshooting.
 2. Install it on the phone.
 3. Enable **S25 Camera Mod** in LSPosed.
@@ -171,8 +171,9 @@ Presets apply to the shortcut-list zoom UI in Video and in the expanded Photo zo
   override is applied.
 - `e5.g.n(e5.l)` supplies the shooting-mode and camcorder maps. The module rewrites only the maps
   requested by an active override: Dual Recording V2, 8K HDR10+/HLG, and Super steady 4K60.
-- `e5.g.m(e5.n)` supplies resolution strings. A small fallback provides the four missing 24 MP
-  entries so `SUPPORT_BACK_MEDIUM_RESOLUTION` does not read a null resolution.
+- `e5.g.m(e5.n)` supplies resolution strings. A small fallback fills the missing 24 MP entries
+  for `SUPPORT_BACK_MEDIUM_RESOLUTION` and the missing front-camera entries for
+  `SUPPORT_FRONT_HIGH_RESOLUTION`, so neither flag can feed an empty size to `l9.a2.k`.
 - The **Feature flags** explorer reads the bundled 243-name `e5.d` catalog and the camera-reported
   stock snapshot, then stores only the values that differ from stock.
 - `ZoomReadoutFix` extends the stock three zoom views from four to five character buckets.
@@ -209,8 +210,8 @@ To build the larger debug APK instead, run `assembleDebug lintDebug` and use
 
 The release build is minified, resource-shrunk, and signed with the debug key for update
 compatibility. `proguard-rules.pro` keeps the Xposed entry point and DexKit classes. Both variants
-are arm64-v8a and include the DexKit native library used for class lookup. The 1.1.0 release APK is
-3.2 MB; the debug APK is 32.5 MB.
+are arm64-v8a and include the DexKit native library used for class lookup. The 1.1.1 release APK is
+3.2 MB; the debug APK is 32.3 MB.
 
 ## Known limitations
 
@@ -218,12 +219,19 @@ are arm64-v8a and include the DexKit native library used for class lookup. The 1
 - The camera HAL may reject or clamp crop requests above its own per-mode maximum. An APK hook
   cannot fix a hard HAL limit.
 - Above 100×, the stock tick map is sparse or incomplete even though the readout works.
-- 50 MP Motion Photo, 24 MP capture, Fusion high resolution, and the policy flags are experimental.
-  They may expose no UI or fail on capture on this firmware.
+- 50 MP Motion Photo, Fusion high resolution, and the policy flags are experimental. They may
+  expose no UI or fail on capture on this firmware.
+- **24 MP is not usable on this firmware.** Turning on `SUPPORT_BACK_MEDIUM_RESOLUTION`,
+  `SUPPORT_BACK_PORTRAIT_MEDIUM_RESOLUTION`, or `SUPPORT_24MP_MOTION_PHOTO` makes the vendor
+  camera HAL crash while configuring 24 MP streams (`GetStreamForHiResScaler24MP` SIGSEGV /
+  `ChxSensorModeSelect::FindClosestMode` SIGABRT). The failure is below the app: the HAL has no
+  24 MP stream or XCFA sensor mode for this sensor. Leave these flags on **Default**.
 - Feature-flag summaries are inferred from the flag names. Samsung publishes no descriptions for
   `e5.d`; the explorer disclaimer reflects that.
 - Forcing a hardware or system flag off can break Camera features or destabilise the app. Leave
   flags on **Default** unless the effect is understood.
+- The front camera is 12 MP. Forcing **SUPPORT_FRONT_HIGH_RESOLUTION** on shows the front
+  picture-size toggle with 12 MP sizes; it cannot add detail that the sensor does not capture.
 - `SUPPORT_AI_HIGH_RESOLUTION_MEMORY_CHECK` is not queried by Camera 17.0.00.43, so overriding it
   has no effect on this build.
 - The per-mode zoom switches are experimental. Some `NOT_SUPPORTED` places hide the zoom UI
