@@ -2,7 +2,7 @@
 
 ## 1.1.1
 
-Fix front high-resolution flag crash.
+Fix flag-induced Camera crashes.
 
 - Forcing **SUPPORT_FRONT_HIGH_RESOLUTION** on made Camera 17.0.00.43 crash at startup with
   `getResolution : argument is invalid -` because the front resolution entries are empty in
@@ -10,6 +10,11 @@ Fix front high-resolution flag crash.
   (`4000x3000`, `4000x2252`, `2992x2992`, `4000x1848`) before the picture-size menu is built.
 - The same fallback now covers **SUPPORT_BACK_PORTRAIT_MEDIUM_RESOLUTION** when it is enabled
   without **SUPPORT_BACK_MEDIUM_RESOLUTION**.
+- Enabling **SUPPORT_PREVIEW_FIT_TO_FULL_SCREEN** kept the `view_mode` switch preference, but
+  Camera 17.0.00.43 has no `view_mode` entry in its settings-key map. Opening Settings threw
+  `RuntimeException: No defined key view_mode` from `sc.b0.h`. The module now supplies the enum's
+  own `INVALID` analytics event for that one key while the override is on, so Settings opens
+  normally.
 - The **On** and **Off** filters now use each flag's live value (override if present, otherwise
   stock) instead of the stock value alone.
 - The header now reads the installed version instead of a hardcoded string.

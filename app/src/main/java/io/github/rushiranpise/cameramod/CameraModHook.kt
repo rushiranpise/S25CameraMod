@@ -5,6 +5,7 @@ import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import io.github.rushiranpise.cameramod.feature.FeatureMaps
 import io.github.rushiranpise.cameramod.feature.PhotoResolutions
+import io.github.rushiranpise.cameramod.feature.SettingsKeyFallback
 import io.github.rushiranpise.cameramod.feature.StockFlagsReporter
 import io.github.rushiranpise.cameramod.feature.SupportFlags
 import io.github.rushiranpise.cameramod.feature.VideoZoomUnlock
@@ -27,6 +28,7 @@ class CameraModHook : IXposedHookLoadPackage {
 
         install("support flags") { SupportFlags.install(lpparam.classLoader) }
         install("stock flag report") { StockFlagsReporter.install(lpparam.classLoader) }
+        install("settings key fallback") { SettingsKeyFallback.install(lpparam.classLoader) }
         install("resolution fallback") { PhotoResolutions.install(lpparam.classLoader) }
         install("feature maps") { FeatureMaps.install(lpparam.classLoader) }
         install("zoom readout") { ZoomReadoutFix.install(lpparam.classLoader) }
