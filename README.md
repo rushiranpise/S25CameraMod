@@ -4,7 +4,7 @@ An LSPosed module for the Galaxy S25 Ultra camera. It raises the photo and video
 restores the stock shortcut row with configurable high-zoom presets, and exposes hidden Camera
 features through a compact Material 3 Expressive UI.
 
-[![Version](https://img.shields.io/badge/version-1.1.1-blue)](https://github.com/rushiranpise/S25CameraMod/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue)](https://github.com/rushiranpise/S25CameraMod/releases/latest)
 [![Android](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)](https://www.android.com/)
 [![LSPosed](https://img.shields.io/badge/LSPosed-API%2082-6C3FC5)](https://github.com/LSPosed/LSPosed)
 
@@ -87,6 +87,16 @@ natural-blur video, and 4K portrait video — is controlled by its underlying su
 | Portrait zoom | Raises the `PORTRAIT` max-zoom query |
 | Food zoom | Raises the `FOOD` max-zoom query |
 | High-res photo zoom | Raises the `HIGH_RESOLUTION` query for 50 MP/200 MP and other stills |
+| Unhide Assistant settings | Advertises Camera Assistant keys that Camera filters out of its provider reply |
+
+**Unhide Assistant settings** changes only Camera's `CameraSettingProvider` reply. Camera Assistant
+renders any key it recognizes from that reply, so keys hidden by this firmware's filter can appear
+without modifying or re-signing the Assistant APK. Reopen Camera Assistant after enabling it.
+The bridge skips settings this model cannot run: **Mirror view** (and its two launch options) and
+the two 24 MP keys. Mirror view is a foldable-only mode - this firmware ships no
+`SHOOTING_MODE_MIRROR` feature data, so opening it crashes Camera with
+`getResolution : argument is invalid - null` - and 24 MP has no HAL stream. Remaining keys may
+still be inert when the matching Camera feature or hardware is absent.
 
 The former photo toggles — Portrait filters, Detail Enhancer button, 50 MP/24 MP motion photo,
 Fusion high resolution, Photo max night shot, AI high-res memory check, and Back 24 MP
@@ -146,8 +156,8 @@ reset overrides if Camera will not start.
 
 ## Install
 
-1. Download `S25CameraMod-1.1.1-release.apk` (recommended, 3.2 MB) from
-   [Releases](https://github.com/rushiranpise/S25CameraMod/releases/latest). The 32.3 MB
+1. Download `S25CameraMod-1.2.0-release.apk` (recommended, 3.2 MB) from
+   [Releases](https://github.com/rushiranpise/S25CameraMod/releases/latest). The 32.1 MB
    `-debug.apk` is also available for troubleshooting.
 2. Install it on the phone.
 3. Enable **S25 Camera Mod** in LSPosed.
@@ -192,6 +202,11 @@ animates across the full usable range instead of stopping at the last stock tick
   `SUPPORT_FRONT_HIGH_RESOLUTION`, so neither flag can feed an empty size to `l9.a2.k`.
 - The **Feature flags** explorer reads the bundled 243-name `e5.d` catalog and the camera-reported
   stock snapshot, then stores only the values that differ from stock.
+- **Unhide Assistant settings** after-hooks
+  `CameraSettingProvider.call("get", version, null)` and appends the missing key/value pairs to
+  its `SettingKeys` bundle. The values use the same `te.c0.k1` lookup and `ag.c.d` default as
+  Camera's own reply builder. The Assistant APK is never modified, so the provider's
+  signature-level permission keeps working.
 - `ZoomReadoutFix` extends the stock three zoom views from four to five character buckets.
 - Zoom presets rewrite the shortcut adapter's high-zoom tail and override the shared value lookup
   so chip text, click value, selection, and ticks stay consistent.
@@ -229,8 +244,8 @@ To build the larger debug APK instead, run `assembleDebug lintDebug` and use
 
 The release build is minified, resource-shrunk, and signed with the debug key for update
 compatibility. `proguard-rules.pro` keeps the Xposed entry point and DexKit classes. Both variants
-are arm64-v8a and include the DexKit native library used for class lookup. The 1.1.1 release APK is
-3.2 MB; the debug APK is 32.3 MB.
+are arm64-v8a and include the DexKit native library used for class lookup. The 1.2.0 release APK is
+3.2 MB; the debug APK is 32.1 MB.
 
 ## Known limitations
 
@@ -247,6 +262,9 @@ are arm64-v8a and include the DexKit native library used for class lookup. The 1
   24 MP stream or XCFA sensor mode for this sensor. Leave these flags on **Default**.
 - Feature-flag summaries are inferred from the flag names. Samsung publishes no descriptions for
   `e5.d`; the explorer disclaimer reflects that.
+- **Unhide Assistant settings** only changes the provider reply. A key can still be inert when this
+  firmware lacks the matching Camera feature or hardware. Reopen Camera Assistant to refresh.
+  Mirror view and the 24 MP keys are never advertised because this model cannot run them.
 - Forcing a hardware or system flag off can break Camera features or destabilise the app. Leave
   flags on **Default** unless the effect is understood.
 - The front camera is 12 MP. Forcing **SUPPORT_FRONT_HIGH_RESOLUTION** on shows the front

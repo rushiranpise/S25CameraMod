@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.2.0
+
+Camera Assistant bridge.
+
+- Added **Unhide Assistant settings** on the **Camera** tab. It after-hooks Camera's
+  `CameraSettingProvider.call("get", ...)` reply and appends the Camera Assistant preference keys
+  that this firmware filters out, using Camera's own stored value and stock default for each key.
+- Camera Assistant stays untouched. It renders the extra keys through its normal preference
+  pipeline, and its signature-level `CameraSettingProvider.READ_WRITE` permission keeps working.
+- Only keys that already exist in the installed Camera Assistant are appended. Some entries can
+  duplicate Camera's own menu or be inert on this firmware.
+- Skips **Mirror view**, **Quick launch mirror**, **Launch from Lock screen**, and the two 24 MP
+  keys. This firmware has no `SHOOTING_MODE_MIRROR` feature data, so opening Mirror view crashes
+  Camera with `IllegalArgumentException: getResolution : argument is invalid - null`; 24 MP has
+  the HAL limitation described above.
+- VersionCode 14, versionName 1.2.0.
+
 ## 1.1.1
 
 Fix flag-induced Camera crashes.

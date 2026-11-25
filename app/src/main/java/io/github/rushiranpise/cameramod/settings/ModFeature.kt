@@ -46,4 +46,13 @@ enum class ModFeature(
         false,
         FeatureTab.CAMERA,
     ),
+
+    // Advertises Camera Assistant settings this firmware leaves out of Camera's provider reply.
+    // The assistant APK stays untouched, so its signature-level provider permission survives.
+    CAMERA_ASSISTANT_BRIDGE(
+        "camera_assistant_bridge",
+        "Unhide Assistant settings",
+        false,
+        FeatureTab.CAMERA,
+    ),
 }
