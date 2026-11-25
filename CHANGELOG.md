@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.3.0
 
 Generic per-resolution capability mirroring.
 
@@ -16,6 +16,7 @@ Generic per-resolution capability mirroring.
 - APV: this firmware omits `apv` from `camera-feature.xml`, which made `te.c0.o(resolution)`
   false even with **SUPPORT_APV** forced on. The mirror keeps the APV capture-type, profile, and
   HDR/LOG indicator settings available instead of hiding them at every resolution.
+- VersionCode 15, versionName 1.3.0.
 
 ## 1.2.0
 

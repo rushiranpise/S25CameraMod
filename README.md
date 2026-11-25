@@ -4,7 +4,7 @@ An LSPosed module for the Galaxy S25 Ultra camera. It raises the photo and video
 restores the stock shortcut row with configurable high-zoom presets, and exposes hidden Camera
 features through a compact Material 3 Expressive UI.
 
-[![Version](https://img.shields.io/badge/version-1.2.0-blue)](https://github.com/rushiranpise/S25CameraMod/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue)](https://github.com/rushiranpise/S25CameraMod/releases/latest)
 [![Android](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)](https://www.android.com/)
 [![LSPosed](https://img.shields.io/badge/LSPosed-API%2082-6C3FC5)](https://github.com/LSPosed/LSPosed)
 
@@ -164,8 +164,8 @@ reset overrides if Camera will not start.
 
 ## Install
 
-1. Download `S25CameraMod-1.2.0-release.apk` (recommended, 3.2 MB) from
-   [Releases](https://github.com/rushiranpise/S25CameraMod/releases/latest). The 32.1 MB
+1. Download `S25CameraMod-1.3.0-release.apk` (recommended, 3.2 MB) from
+   [Releases](https://github.com/rushiranpise/S25CameraMod/releases/latest). The 32.3 MB
    `-debug.apk` is also available for troubleshooting.
 2. Install it on the phone.
 3. Enable **S25 Camera Mod** in LSPosed.
@@ -252,8 +252,8 @@ To build the larger debug APK instead, run `assembleDebug lintDebug` and use
 
 The release build is minified, resource-shrunk, and signed with the debug key for update
 compatibility. `proguard-rules.pro` keeps the Xposed entry point and DexKit classes. Both variants
-are arm64-v8a and include the DexKit native library used for class lookup. The 1.2.0 release APK is
-3.2 MB; the debug APK is 32.1 MB.
+are arm64-v8a and include the DexKit native library used for class lookup. The 1.3.0 release APK is
+3.2 MB; the debug APK is 32.3 MB.
 
 ## Known limitations
 
