@@ -2,14 +2,20 @@
 
 ## Unreleased
 
-APV per-resolution gate.
+Generic per-resolution capability mirroring.
 
-- Forcing **SUPPORT_APV** now also writes `apv=true` into every back-camcorder resolution map.
-  This firmware omits the `apv` key from `camera-feature.xml`, which made `te.c0.o(resolution)`
-  false even with the support flag forced on. The map mirror keeps the APV capture-type, profile,
-  and HDR/LOG indicator settings available instead of hiding them at every resolution.
-- The map rewrite is combined with the existing 8K HDR10+/HLG rewrite, so an 8K map can receive
-  both changes in one pass.
+- Forcing a support flag now also writes the matching per-resolution capability keys into the
+  camera-feature maps. The flag opens the menu; the map key is a second gate that could still
+  hide the feature at every resolution.
+- Covered: **SUPPORT_APV** → `apv`; **SUPPORT_HDR_VIDEOS_MENU** → `hdr10`/`hlg`;
+  **SUPPORT_CAMCORDER_ANTI_SHAKE** → `vdis` (back); **SUPPORT_CAMCORDER_FRONT_ANTI_SHAKE** →
+  `vdis` (front); **SUPPORT_SEAMLESS_ZOOM** → `seamless-zoom-support`;
+  **SUPPORT_OBJECT_TRACKING_AF** → `object-tracking`; **SUPPORT_BACK_VIDEO_BEAUTY** → `effect`.
+- Only explicit true overrides trigger a rewrite, and a map is only replaced when a value
+  actually changes. The 8K HDR10+/HLG rewrite is now part of the same rule table.
+- APV: this firmware omits `apv` from `camera-feature.xml`, which made `te.c0.o(resolution)`
+  false even with **SUPPORT_APV** forced on. The mirror keeps the APV capture-type, profile, and
+  HDR/LOG indicator settings available instead of hiding them at every resolution.
 
 ## 1.2.0
 
