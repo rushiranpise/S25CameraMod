@@ -14,7 +14,7 @@ Camera Assistant bridge.
 - Skips **Mirror view**, **Quick launch mirror**, **Launch from Lock screen**, and the two 24 MP
   keys. This firmware has no `SHOOTING_MODE_MIRROR` feature data, so opening Mirror view crashes
   Camera with `IllegalArgumentException: getResolution : argument is invalid - null`; 24 MP has
-  the HAL limitation described above.
+  the HAL limitation described in 1.1.1.
 - VersionCode 14, versionName 1.2.0.
 
 ## 1.1.1
