@@ -27,8 +27,10 @@ object FeatureMaps {
 
     private const val DUAL_RECORDING_V2_MAP = "SHOOTING_MODE_DUAL_RECORDING_V2"
     private const val DUAL_RECORDING_FLAG = "SUPPORT_DUAL_RECORDING_IN_VIDEO_MODE"
+    private const val BACK_CAMCORDER_MAP_PREFIX = "BACK_CAMCORDER_RESOLUTION_FEATURE_MAP_"
     private const val HIGH_RES_VIDEO_PREFIX = "BACK_CAMCORDER_RESOLUTION_FEATURE_MAP_7680X"
     private const val HDR_VIDEO_FLAG = "SUPPORT_HDR_VIDEOS_MENU"
+    private const val APV_FLAG = "SUPPORT_APV"
 
     private val superSteadyMaps = setOf(
         "BACK_CAMCORDER_RESOLUTION_FEATURE_MAP_3840X2160_60FPS",
@@ -77,23 +79,37 @@ object FeatureMaps {
 
     private fun changeFor(key: String): MapChange? {
         val overrides = SettingsBridge.flagOverrides()
-        return when {
-            key == DUAL_RECORDING_V2_MAP &&
-                overrides[DUAL_RECORDING_FLAG] == true ->
-                MapChange.Put(mapOf("enable" to "true"), DUAL_RECORDING_FLAG)
+        val entries = LinkedHashMap<String, String>()
+        val labels = ArrayList<String>()
 
-            key.startsWith(HIGH_RES_VIDEO_PREFIX) &&
-                overrides[HDR_VIDEO_FLAG] == true ->
-                MapChange.Put(mapOf("hdr10" to "true", "hlg" to "true"), HDR_VIDEO_FLAG)
-
-            key in superSteadyMaps && SettingsBridge.isEnabled(ModFeature.SUPER_STEADY_4K60) ->
-                MapChange.Put(
-                    mapOf("super-vdis" to "true"),
-                    ModFeature.SUPER_STEADY_4K60.key,
-                )
-
-            else -> null
+        if (key == DUAL_RECORDING_V2_MAP && overrides[DUAL_RECORDING_FLAG] == true) {
+            entries["enable"] = "true"
+            labels += DUAL_RECORDING_FLAG
         }
+
+        if (key.startsWith(HIGH_RES_VIDEO_PREFIX) && overrides[HDR_VIDEO_FLAG] == true) {
+            entries["hdr10"] = "true"
+            entries["hlg"] = "true"
+            labels += HDR_VIDEO_FLAG
+        }
+
+        // The APV capability is a per-resolution map key, not a shooting mode. This firmware
+        // omits it from camera-feature.xml, which makes te.c0.o(resolution) false even when
+        // SUPPORT_APV is forced on. Mirror the override into the map so the APV capture-type,
+        // profile, and indicator settings stay available.
+        if (key.startsWith(BACK_CAMCORDER_MAP_PREFIX)) {
+            overrides[APV_FLAG]?.let { enabled ->
+                entries["apv"] = enabled.toString()
+                labels += "$APV_FLAG=$enabled"
+            }
+        }
+
+        if (key in superSteadyMaps && SettingsBridge.isEnabled(ModFeature.SUPER_STEADY_4K60)) {
+            entries["super-vdis"] = "true"
+            labels += ModFeature.SUPER_STEADY_4K60.key
+        }
+
+        return if (entries.isEmpty()) null else MapChange.Put(entries, labels.joinToString("+"))
     }
 
     private fun findMapGetter(classLoader: ClassLoader): Method? = try {

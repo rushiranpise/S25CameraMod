@@ -79,6 +79,11 @@ The remaining video behaviour — Dual Recording V2, 8K HDR10+/HLG, Tele 120 fps
 natural-blur video, and 4K portrait video — is controlled by its underlying support flag in
 **Feature flags**.
 
+For APV, forcing **SUPPORT_APV** also mirrors `apv=true` into the back-camcorder resolution maps.
+This firmware omits that per-resolution key from `camera-feature.xml`, so without the mirror the
+APV format entry can appear while the APV capture-type, profile, and HDR/LOG indicator settings
+stay hidden at every resolution.
+
 ### Camera tab
 
 | Toggle | What it enables |

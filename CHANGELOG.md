@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+APV per-resolution gate.
+
+- Forcing **SUPPORT_APV** now also writes `apv=true` into every back-camcorder resolution map.
+  This firmware omits the `apv` key from `camera-feature.xml`, which made `te.c0.o(resolution)`
+  false even with the support flag forced on. The map mirror keeps the APV capture-type, profile,
+  and HDR/LOG indicator settings available instead of hiding them at every resolution.
+- The map rewrite is combined with the existing 8K HDR10+/HLG rewrite, so an 8K map can receive
+  both changes in one pass.
+
 ## 1.2.0
 
 Camera Assistant bridge.
